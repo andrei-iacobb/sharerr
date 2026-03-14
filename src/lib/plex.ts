@@ -115,9 +115,20 @@ export async function searchPlex(
 }
 
 export async function getTransientToken(): Promise<string> {
-  const data = await plexFetch("/security/token?type=delegation");
-  // The token is in the response
-  const token = (data as unknown as { MediaContainer: { token: string } }).MediaContainer.token;
+  const url = new URL("/security/token", PLEX_URL);
+  url.searchParams.set("type", "delegation");
+  url.searchParams.set("scope", "all");
+  url.searchParams.set("X-Plex-Token", PLEX_TOKEN);
+  url.searchParams.set("X-Plex-Client-Identifier", "sharerr");
+  url.searchParams.set("X-Plex-Product", "Sharerr");
+
+  const res = await fetch(url.toString(), {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`Plex token error: ${res.status} ${res.statusText}`);
+  const data = await res.json();
+  const token = data.MediaContainer?.token;
   if (!token) throw new Error("Failed to get transient token from Plex");
   return token;
 }
