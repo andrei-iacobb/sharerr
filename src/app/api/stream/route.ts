@@ -4,6 +4,7 @@ import { getSession } from "@/lib/session";
 import { getMetadata, getTransientToken } from "@/lib/plex";
 
 const PLEX_URL = process.env.PLEX_URL || "http://plex.media.svc.cluster.local:32400";
+const PLEX_EXTERNAL_URL = process.env.PLEX_EXTERNAL_URL || PLEX_URL;
 const PLEX_TOKEN = process.env.PLEX_TOKEN || "";
 
 export async function POST(req: NextRequest) {
@@ -27,8 +28,8 @@ export async function POST(req: NextRequest) {
     const token = await getTransientToken(clientId);
     const metadataPath = `/library/metadata/${ratingKey}`;
 
-    // Fetch start.m3u8 server-side ONCE to get the session ID
-    const startUrl = `${PLEX_URL}/video/:/transcode/universal/start.m3u8?` + new URLSearchParams({
+    // Fetch start.m3u8 server-side to create the transcode session
+    const startParams = new URLSearchParams({
       path: metadataPath,
       mediaIndex: "0",
       partIndex: "0",
@@ -40,6 +41,7 @@ export async function POST(req: NextRequest) {
       "X-Plex-Product": "Sharerr",
       "X-Plex-Platform": "Chrome",
     });
+    const startUrl = `${PLEX_URL}/video/:/transcode/universal/start.m3u8?${startParams}`;
 
     const masterRes = await fetch(startUrl, { cache: "no-store" });
     if (!masterRes.ok) {
@@ -47,26 +49,22 @@ export async function POST(req: NextRequest) {
     }
     const masterManifest = await masterRes.text();
 
-    // Extract session path from master manifest (e.g., "session/xxx/base/index.m3u8")
     const sessionLine = masterManifest.split("\n").find(l => l.trim() && !l.startsWith("#"));
     if (!sessionLine) {
       throw new Error("No session path in master manifest");
     }
 
-    // Build the index manifest URL - this is what HLS.js will load as the source
-    const indexPlexUrl = `${PLEX_URL}/video/:/transcode/universal/${sessionLine.trim()}?X-Plex-Token=${PLEX_TOKEN}&X-Plex-Client-Identifier=${clientId}`;
-    const hlsUrl = `/api/plex-stream?b=${Buffer.from(indexPlexUrl).toString("base64url")}`;
+    // Build direct Plex URL for the browser — no proxy needed (CORS handled by Envoy)
+    const indexUrl = `${PLEX_EXTERNAL_URL}/video/:/transcode/universal/${sessionLine.trim()}?X-Plex-Token=${PLEX_TOKEN}&X-Plex-Client-Identifier=${clientId}`;
 
     const partKey = item.Media[0].Part[0].key;
-    const directPlexUrl = `${PLEX_URL}${partKey}?X-Plex-Token=${token}&X-Plex-Client-Identifier=${clientId}`;
-    const directUrl = `/api/plex-stream?b=${Buffer.from(directPlexUrl).toString("base64url")}`;
+    const directUrl = `${PLEX_EXTERNAL_URL}${partKey}?X-Plex-Token=${token}&X-Plex-Client-Identifier=${clientId}`;
 
     return NextResponse.json({
-      hlsUrl,
+      hlsUrl: indexUrl,
       directUrl,
       title: item.title,
       duration: item.duration,
-      clientId,
     });
   } catch (err) {
     console.error("Stream error:", err);
