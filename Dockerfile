@@ -30,8 +30,11 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
-COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
+COPY --from=builder /app/package.json ./package.json
 COPY docker-entrypoint.sh ./
+
+# Install prisma CLI for migrations
+RUN npm install prisma@6 --save-exact --ignore-scripts 2>/dev/null; true
 
 RUN chmod +x docker-entrypoint.sh
 
