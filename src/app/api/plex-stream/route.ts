@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/session";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 const PLEX_URL = process.env.PLEX_URL || "http://plex.media.svc.cluster.local:32400";
 
 export async function GET(req: NextRequest) {
