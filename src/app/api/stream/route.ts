@@ -13,18 +13,26 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing ratingKey" }, { status: 400 });
   }
 
-  const item = await getMetadata(ratingKey);
-  if (!item?.Media?.[0]?.Part?.[0]) {
-    return NextResponse.json({ error: "No media found" }, { status: 404 });
+  try {
+    const item = await getMetadata(ratingKey);
+    if (!item?.Media?.[0]?.Part?.[0]) {
+      return NextResponse.json({ error: "No media found" }, { status: 404 });
+    }
+
+    const partKey = item.Media[0].Part[0].key;
+    const token = await getTransientToken();
+
+    return NextResponse.json({
+      hlsUrl: getStreamUrl(partKey, token),
+      directUrl: getDirectStreamUrl(partKey, token),
+      title: item.title,
+      duration: item.duration,
+    });
+  } catch (err) {
+    console.error("Stream error:", err);
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Failed to get stream" },
+      { status: 500 }
+    );
   }
-
-  const partKey = item.Media[0].Part[0].key;
-  const token = await getTransientToken();
-
-  return NextResponse.json({
-    hlsUrl: getStreamUrl(partKey, token),
-    directUrl: getDirectStreamUrl(partKey, token),
-    title: item.title,
-    duration: item.duration,
-  });
 }

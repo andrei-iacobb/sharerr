@@ -54,11 +54,18 @@ export interface PlexMedia {
   }[];
 }
 
+const PLEX_HEADERS = {
+  Accept: "application/json",
+  "X-Plex-Client-Identifier": "sharerr",
+  "X-Plex-Product": "Sharerr",
+  "X-Plex-Version": "1.0.0",
+};
+
 async function plexFetch(path: string): Promise<PlexResponse> {
   const url = new URL(path, PLEX_URL);
   url.searchParams.set("X-Plex-Token", PLEX_TOKEN);
   const res = await fetch(url.toString(), {
-    headers: { Accept: "application/json" },
+    headers: PLEX_HEADERS,
     next: { revalidate: 60 },
   });
   if (!res.ok) throw new Error(`Plex API error: ${res.status} ${res.statusText}`);

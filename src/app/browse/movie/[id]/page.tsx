@@ -40,16 +40,29 @@ export default function MoviePage() {
       });
   }, [id]);
 
+  const [playError, setPlayError] = useState<string | null>(null);
+  const [playLoading, setPlayLoading] = useState(false);
+
   const handlePlay = async () => {
-    const res = await fetch("/api/stream", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ratingKey: id }),
-    });
-    const data = await res.json();
-    if (data.hlsUrl) {
-      setStreamData(data);
-      setPlaying(true);
+    setPlayLoading(true);
+    setPlayError(null);
+    try {
+      const res = await fetch("/api/stream", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ratingKey: id }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setPlayError(data.error);
+      } else if (data.hlsUrl) {
+        setStreamData(data);
+        setPlaying(true);
+      }
+    } catch {
+      setPlayError("Failed to start playback");
+    } finally {
+      setPlayLoading(false);
     }
   };
 
@@ -143,13 +156,19 @@ export default function MoviePage() {
 
           <button
             onClick={handlePlay}
-            className="inline-flex items-center gap-2 px-8 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-lg font-medium transition-colors"
+            disabled={playLoading}
+            className="inline-flex items-center gap-2 px-8 py-3 bg-purple-600 hover:bg-purple-700 rounded-lg text-lg font-medium transition-colors disabled:opacity-50"
           >
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-            Play
+            {playLoading ? (
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            )}
+            {playLoading ? "Loading..." : "Play"}
           </button>
+          {playError && <p className="text-red-400 text-sm">{playError}</p>}
 
           {movie.summary && (
             <p className="text-zinc-300 leading-relaxed max-w-3xl">{movie.summary}</p>
