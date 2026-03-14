@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { PinInput } from "@/components/pin-input";
 
 export default function InvitePage() {
   const { token } = useParams<{ token: string }>();
-  const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handlePinComplete = async (pin: string) => {
+    if (loading) return;
     setLoading(true);
     setError(null);
 
@@ -29,7 +29,8 @@ export default function InvitePage() {
         return;
       }
 
-      router.push(data.redirectUrl);
+      // Use window.location for a hard redirect to ensure cookies are applied
+      window.location.href = data.redirectUrl;
     } catch {
       setError("Something went wrong. Please try again.");
       setLoading(false);

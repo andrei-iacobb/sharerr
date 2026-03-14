@@ -38,6 +38,9 @@ export function Player({ hlsUrl, directUrl, title, onBack }: PlayerProps) {
       hls = new Hls({
         maxBufferLength: 30,
         maxMaxBufferLength: 60,
+        xhrSetup: (xhr) => {
+          xhr.withCredentials = true;
+        },
       });
 
       hls.loadSource(hlsUrl);

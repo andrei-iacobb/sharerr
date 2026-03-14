@@ -114,12 +114,12 @@ export async function searchPlex(
   return data.MediaContainer.Metadata || [];
 }
 
-export async function getTransientToken(): Promise<string> {
+export async function getTransientToken(clientId = "sharerr"): Promise<string> {
   const url = new URL("/security/token", PLEX_URL);
   url.searchParams.set("type", "delegation");
   url.searchParams.set("scope", "all");
   url.searchParams.set("X-Plex-Token", PLEX_TOKEN);
-  url.searchParams.set("X-Plex-Client-Identifier", "sharerr");
+  url.searchParams.set("X-Plex-Client-Identifier", clientId);
   url.searchParams.set("X-Plex-Product", "Sharerr");
 
   const res = await fetch(url.toString(), {
@@ -133,8 +133,7 @@ export async function getTransientToken(): Promise<string> {
   return token;
 }
 
-export function getStreamUrl(metadataPath: string, token: string): string {
-  // Build the Plex URL that will be proxied through our API
+export function getStreamUrl(metadataPath: string, token: string, clientId = "sharerr"): string {
   const plexParams = new URLSearchParams({
     path: metadataPath,
     mediaIndex: "0",
@@ -143,17 +142,17 @@ export function getStreamUrl(metadataPath: string, token: string): string {
     directPlay: "1",
     directStream: "1",
     "X-Plex-Token": token,
-    "X-Plex-Client-Identifier": "sharerr",
+    "X-Plex-Client-Identifier": clientId,
     "X-Plex-Product": "Sharerr",
     "X-Plex-Platform": "Chrome",
   });
   const plexUrl = `${PLEX_URL}/video/:/transcode/universal/start.m3u8?${plexParams}`;
-  return `/api/plex-stream?url=${encodeURIComponent(plexUrl)}`;
+  return `/api/plex-stream?b=${Buffer.from(plexUrl).toString("base64url")}`;
 }
 
-export function getDirectStreamUrl(partKey: string, token: string): string {
-  const plexUrl = `${PLEX_URL}${partKey}?X-Plex-Token=${token}&X-Plex-Client-Identifier=sharerr`;
-  return `/api/plex-stream?url=${encodeURIComponent(plexUrl)}`;
+export function getDirectStreamUrl(partKey: string, token: string, clientId = "sharerr"): string {
+  const plexUrl = `${PLEX_URL}${partKey}?X-Plex-Token=${token}&X-Plex-Client-Identifier=${clientId}`;
+  return `/api/plex-stream?b=${Buffer.from(plexUrl).toString("base64url")}`;
 }
 
 export function getImageUrl(thumb: string): string {
