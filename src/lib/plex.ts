@@ -135,12 +135,23 @@ export async function getTransientToken(): Promise<string> {
 
 export function getStreamUrl(partKey: string, token: string): string {
   const base = PLEX_EXTERNAL_URL || PLEX_URL;
-  return `${base}/video/:/transcode/universal/start.m3u8?path=${encodeURIComponent(partKey)}&mediaIndex=0&partIndex=0&protocol=hls&directPlay=1&directStream=1&X-Plex-Token=${token}`;
+  const params = new URLSearchParams({
+    path: partKey,
+    mediaIndex: "0",
+    partIndex: "0",
+    protocol: "hls",
+    directPlay: "1",
+    directStream: "1",
+    "X-Plex-Token": token,
+    "X-Plex-Client-Identifier": "sharerr",
+    "X-Plex-Product": "Sharerr",
+  });
+  return `${base}/video/:/transcode/universal/start.m3u8?${params}`;
 }
 
 export function getDirectStreamUrl(partKey: string, token: string): string {
   const base = PLEX_EXTERNAL_URL || PLEX_URL;
-  return `${base}${partKey}?X-Plex-Token=${token}`;
+  return `${base}${partKey}?X-Plex-Token=${token}&X-Plex-Client-Identifier=sharerr`;
 }
 
 export function getImageUrl(thumb: string): string {
