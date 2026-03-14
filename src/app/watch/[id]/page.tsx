@@ -8,8 +8,7 @@ export default function WatchPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [streamData, setStreamData] = useState<{
-    hlsUrl: string;
-    directUrl: string;
+    streamUrl: string;
     title: string;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -57,8 +56,7 @@ export default function WatchPage() {
 
   return (
     <Player
-      hlsUrl={streamData.hlsUrl}
-      directUrl={streamData.directUrl}
+      streamUrl={streamData.streamUrl}
       title={streamData.title}
       onBack={() => router.back()}
     />

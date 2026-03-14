@@ -26,8 +26,7 @@ export default function MoviePage() {
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [streamData, setStreamData] = useState<{
-    hlsUrl: string;
-    directUrl: string;
+    streamUrl: string;
     title: string;
   } | null>(null);
 
@@ -55,7 +54,7 @@ export default function MoviePage() {
       const data = await res.json();
       if (data.error) {
         setPlayError(data.error);
-      } else if (data.hlsUrl) {
+      } else if (data.streamUrl) {
         setStreamData(data);
         setPlaying(true);
       }
@@ -92,8 +91,7 @@ export default function MoviePage() {
   if (playing && streamData) {
     return (
       <Player
-        hlsUrl={streamData.hlsUrl}
-        directUrl={streamData.directUrl}
+        streamUrl={streamData.streamUrl}
         title={streamData.title}
         onBack={() => setPlaying(false)}
       />

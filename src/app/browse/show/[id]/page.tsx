@@ -27,8 +27,7 @@ export default function ShowPage() {
   const [loading, setLoading] = useState(true);
   const [playing, setPlaying] = useState(false);
   const [streamData, setStreamData] = useState<{
-    hlsUrl: string;
-    directUrl: string;
+    streamUrl: string;
     title: string;
   } | null>(null);
 
@@ -48,7 +47,7 @@ export default function ShowPage() {
       body: JSON.stringify({ ratingKey: episodeKey }),
     });
     const data = await res.json();
-    if (data.hlsUrl) {
+    if (data.streamUrl) {
       setStreamData(data);
       setPlaying(true);
     }
@@ -73,8 +72,7 @@ export default function ShowPage() {
   if (playing && streamData) {
     return (
       <Player
-        hlsUrl={streamData.hlsUrl}
-        directUrl={streamData.directUrl}
+        streamUrl={streamData.streamUrl}
         title={streamData.title}
         onBack={() => setPlaying(false)}
       />
