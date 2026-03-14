@@ -133,10 +133,10 @@ export async function getTransientToken(): Promise<string> {
   return token;
 }
 
-export function getStreamUrl(partKey: string, token: string): string {
-  const base = PLEX_EXTERNAL_URL || PLEX_URL;
-  const params = new URLSearchParams({
-    path: partKey,
+export function getStreamUrl(metadataPath: string, token: string): string {
+  // Build the Plex URL that will be proxied through our API
+  const plexParams = new URLSearchParams({
+    path: metadataPath,
     mediaIndex: "0",
     partIndex: "0",
     protocol: "hls",
@@ -147,12 +147,13 @@ export function getStreamUrl(partKey: string, token: string): string {
     "X-Plex-Product": "Sharerr",
     "X-Plex-Platform": "Chrome",
   });
-  return `${base}/video/:/transcode/universal/start.m3u8?${params}`;
+  const plexUrl = `${PLEX_URL}/video/:/transcode/universal/start.m3u8?${plexParams}`;
+  return `/api/plex-stream?url=${encodeURIComponent(plexUrl)}`;
 }
 
 export function getDirectStreamUrl(partKey: string, token: string): string {
-  const base = PLEX_EXTERNAL_URL || PLEX_URL;
-  return `${base}${partKey}?X-Plex-Token=${token}&X-Plex-Client-Identifier=sharerr`;
+  const plexUrl = `${PLEX_URL}${partKey}?X-Plex-Token=${token}&X-Plex-Client-Identifier=sharerr`;
+  return `/api/plex-stream?url=${encodeURIComponent(plexUrl)}`;
 }
 
 export function getImageUrl(thumb: string): string {
