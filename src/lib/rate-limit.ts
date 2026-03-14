@@ -1,6 +1,6 @@
 const attempts = new Map<string, { count: number; resetAt: number }>();
 
-const MAX_ATTEMPTS = 5;
+const MAX_ATTEMPTS = 10;
 const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
 export function checkRateLimit(ip: string): { allowed: boolean; remaining: number; resetAt: number } {
