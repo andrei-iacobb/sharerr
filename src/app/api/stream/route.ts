@@ -21,9 +21,10 @@ export async function POST(req: NextRequest) {
 
     const partKey = item.Media[0].Part[0].key;
     const token = await getTransientToken();
+    const metadataPath = `/library/metadata/${ratingKey}`;
 
     return NextResponse.json({
-      hlsUrl: getStreamUrl(partKey, token),
+      hlsUrl: getStreamUrl(metadataPath, token),
       directUrl: getDirectStreamUrl(partKey, token),
       title: item.title,
       duration: item.duration,

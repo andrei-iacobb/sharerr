@@ -145,6 +145,7 @@ export function getStreamUrl(partKey: string, token: string): string {
     "X-Plex-Token": token,
     "X-Plex-Client-Identifier": "sharerr",
     "X-Plex-Product": "Sharerr",
+    "X-Plex-Platform": "Chrome",
   });
   return `${base}/video/:/transcode/universal/start.m3u8?${params}`;
 }
