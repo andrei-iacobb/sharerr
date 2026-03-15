@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 interface PlayerProps {
   streamUrl: string;
   title: string;
@@ -7,6 +9,49 @@ interface PlayerProps {
 }
 
 export function Player({ streamUrl, title, onBack }: PlayerProps) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    // Safari has native HLS support
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = streamUrl;
+      video.play().catch(() => {});
+      return;
+    }
+
+    // Use HLS.js for other browsers
+    let hls: import("hls.js").default | null = null;
+
+    import("hls.js").then(({ default: Hls }) => {
+      if (!Hls.isSupported()) {
+        video.src = streamUrl;
+        video.play().catch(() => {});
+        return;
+      }
+
+      hls = new Hls({
+        maxBufferLength: 60,
+        maxMaxBufferLength: 120,
+        xhrSetup: (xhr) => {
+          xhr.withCredentials = true;
+        },
+      });
+
+      hls.loadSource(streamUrl);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video.play().catch(() => {});
+      });
+    });
+
+    return () => {
+      hls?.destroy();
+    };
+  }, [streamUrl]);
+
   return (
     <div className="fixed inset-0 bg-black z-50 flex flex-col">
       <div className="absolute top-4 left-4 z-10 flex items-center gap-4">
@@ -22,7 +67,7 @@ export function Player({ streamUrl, title, onBack }: PlayerProps) {
         <span className="text-white/60 text-sm">{title}</span>
       </div>
       <video
-        src={streamUrl}
+        ref={videoRef}
         className="w-full h-full"
         controls
         autoPlay
